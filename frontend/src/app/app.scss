@@ -279,7 +279,7 @@ input[type="password"] {
   
     input[type="password"] {
       width: 100%;
-      // Garante que o clique no ícone nativo seja a prioridade absoluta
+      // clique no ícone nativo seja a prioridade absoluta
       &::-ms-reveal {
         display: block !important;
         cursor: pointer;
