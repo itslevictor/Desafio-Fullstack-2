@@ -1,0 +1,12 @@
+# Ignorar dependências locais
+node_modules
+target
+
+# Ignorar versionamento
+.git
+.gitignore
+
+# Ignorar logs e temporários
+npm-debug.log
+.angular
+dist
