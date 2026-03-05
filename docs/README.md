@@ -1,4 +1,10 @@
-# 🏗️ Desafio Fullstack Integrado
+# Anotacoes das correcoes
+
+1 - No código original do desafio, o sistema provavelmente não verificava o saldo e, mesmo se houvesse um erro, o código continuava tentando gravar no banco.
+2 -
+
+# Sobre o desafio fornecido
+## 🏗️ Desafio Fullstack Integrado
 🚨 Instrução Importante (LEIA ANTES DE COMEÇAR)
 ❌ NÃO faça fork deste repositório.
 
@@ -9,10 +15,10 @@ OU
   Clone este repositório e crie um NOVO repositório público em sua conta GitHub.
 📌 O resultado deve ser um repositório próprio, independente deste.
 
-## 🎯 Objetivo
+### 🎯 Objetivo
 Criar solução completa em camadas (DB, EJB, Backend, Frontend), corrigindo bug em EJB e entregando aplicação funcional.
 
-## 📦 Estrutura
+### 📦 Estrutura
 - db/: scripts schema e seed
 - ejb-module/: serviço EJB com bug a ser corrigido
 - backend-module/: backend Spring Boot
@@ -20,7 +26,7 @@ Criar solução completa em camadas (DB, EJB, Backend, Frontend), corrigindo bug
 - docs/: instruções e critérios
 - .github/workflows/: CI
 
-## ✅ Tarefas do candidato
+### ✅ Tarefas do candidato
 1. Executar db/schema.sql e db/seed.sql
 2. Corrigir bug no BeneficioEjbService
 3. Implementar backend CRUD + integração com EJB
@@ -29,11 +35,11 @@ Criar solução completa em camadas (DB, EJB, Backend, Frontend), corrigindo bug
 6. Documentar (Swagger, README)
 7. Submeter via fork + PR
 
-## 🐞 Bug no EJB
+### 🐞 Bug no EJB
 - Transferência não verifica saldo, não usa locking, pode gerar inconsistência
 - Espera-se correção com validações, rollback, locking/optimistic locking
 
-## 📊 Critérios de avaliação
+### 📊 Critérios de avaliação
 - Arquitetura em camadas (20%)
 - Correção EJB (20%)
 - CRUD + Transferência (15%)
