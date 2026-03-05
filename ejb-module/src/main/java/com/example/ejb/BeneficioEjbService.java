@@ -39,7 +39,7 @@ public class BeneficioEjbService {
 
         // 4. Validação de Saldo (Requisito Principal do Bug)
         if (origem.getSaldo() < valor) {
-            // Lançar RuntimeException dentro de um EJB com transação REQUIRED
+            // Lançar RuntimeException dentro de um EJB com transação "REQUIRED
             // força o Rollback automático de qualquer alteração pendente.
             throw new RuntimeException("Saldo insuficiente. Operação cancelada.");
         }
