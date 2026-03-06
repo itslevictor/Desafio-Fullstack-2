@@ -6,6 +6,7 @@ import javax.ejb.TransactionAttributeType;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.persistence.EntityNotFoundException;
+import javax.persistence.OptimisticLockException;
 
 @Stateless
 public class BeneficioEjbService {
@@ -14,42 +15,41 @@ public class BeneficioEjbService {
     private EntityManager em;
 
     /**
-     * Regra de Negocio: Transferência entre contas de benefícios.
-     * Correcao do Bug: Adicao de validacoes de saldo e garantia de integridade nas transacoes.
+     * Regra de Negócio Avançada: Transferência com Optimistic Locking.
+     * O uso do campo 'version' no banco garante que se o saldo for alterado 
+     * entre a leitura e a gravação, uma OptimisticLockException será lançada.
      */
     @TransactionAttribute(TransactionAttributeType.REQUIRED)
     public void transferir(Long origemId, Long destinoId, Double valor) {
         
-        // 1. Validação de parâmetros de entrada
         if (valor == null || valor <= 0) {
             throw new IllegalArgumentException("O valor da transferência deve ser positivo.");
         }
 
-        // 2. Localização das entidades no banco de dados
+        // Busca as entidades - O JPA automaticamente verificará a versão no commit
         Beneficio origem = em.find(Beneficio.class, origemId);
         Beneficio destino = em.find(Beneficio.class, destinoId);
 
-        // 3. Validação de existência (Prevenção de NullPointerException)
-        if (origem == null) {
-            throw new EntityNotFoundException("Conta de origem nao encontrada ID: " + origemId);
-        }
-        if (destino == null) {
-            throw new EntityNotFoundException("Conta de destino nao encontrada ID: " + destinoId);
+        if (origem == null || destino == null) {
+            throw new EntityNotFoundException("Uma ou ambas as contas não foram encontradas.");
         }
 
-        // 4. Validação de Saldo (Requisito Principal do Bug)
         if (origem.getSaldo() < valor) {
-            // Lançar RuntimeException dentro de um EJB com transação "REQUIRED
-            // força o Rollback automático de qualquer alteração pendente.
-            throw new RuntimeException("Saldo insuficiente. Operação cancelada.");
+            // Lançar RuntimeException força o Rollback no EJB
+            throw new IllegalStateException("Saldo insuficiente na conta origem.");
         }
 
-        // 5. Execução da transferência
+        // Atualização dos estados
         origem.setSaldo(origem.getSaldo() - valor);
         destino.setSaldo(destino.getSaldo() + valor);
 
-        // Sincronização com o contexto de persistencia
-        em.merge(origem);
-        em.merge(destino);
+        // O merge processa as alterações e incrementa o campo 'version'
+        try {
+            em.merge(origem);
+            em.merge(destino);
+            em.flush(); // Força a verificação do lock antes do fim do método
+        } catch (OptimisticLockException e) {
+            throw new RuntimeException("Erro de concorrência: A conta foi alterada por outro processo. Tente novamente.");
+        }
     }
 }
