@@ -1,0 +1,23 @@
+# --- Frontend (Angular) ---
+frontend/node_modules/
+frontend/dist/
+frontend/.angular/
+frontend/.vscode/
+
+# --- Backend & EJB (Java/Maven) ---
+**/target/
+*.class
+*.jar
+*.war
+*.ear
+
+# --- IDEs e Sistema ---
+.idea/
+.vscode/
+*.swp
+*.DS_Store
+Thumbs.db
+
+# --- Configurações Locais ---
+.env
+backend-module/src/main/resources/application.properties
