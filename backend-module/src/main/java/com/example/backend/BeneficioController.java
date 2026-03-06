@@ -5,21 +5,16 @@ import com.example.ejb.model.Beneficio;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.EntityNotFoundException;
 import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/beneficios")
+@CrossOrigin(origins = "http://localhost:4200")
 public class BeneficioController {
 
     @Autowired
     private BeneficioEjbService beneficioService;
-
-    @PersistenceContext
-    private EntityManager em;
 
     @PostMapping("/transferir")
     public ResponseEntity<String> transferir(@RequestBody TransferenciaDTO dto) {
@@ -37,13 +32,13 @@ public class BeneficioController {
 
     @GetMapping
     public ResponseEntity<List<Beneficio>> listarTodos() {
-        // Busca real do banco através do contexto de persistência injetado
-        List<Beneficio> lista = em.createQuery("SELECT b FROM Beneficio b", Beneficio.class).getResultList();
+        // Delegando para o Service
+        List<Beneficio> lista = beneficioService.listarTodos();
         return ResponseEntity.ok(lista);
     }
 }
 
-// DTO para receber o JSON do Angular
+// DTO mantido (pode ficar no final do arquivo ou em arquivo próprio)
 class TransferenciaDTO {
     private Long origemId;
     private Long destinoId;

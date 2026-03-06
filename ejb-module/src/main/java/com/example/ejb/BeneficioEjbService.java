@@ -1,33 +1,27 @@
 package com.example.ejb;
 
 import com.example.ejb.model.Beneficio;
-import jakarta.ejb.Stateless;
-import jakarta.ejb.TransactionAttribute;
-import jakarta.ejb.TransactionAttributeType;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.persistence.OptimisticLockException;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import java.math.BigDecimal;
 import java.util.List;
 
-@Stateless
+@Service
 public class BeneficioEjbService {
 
     @PersistenceContext
     private EntityManager em;
 
-    /**
-     * Regra de Negócio Avançada: Transferência com Optimistic Locking.
-     * O uso do campo 'version' garante proteção contra Dirty Reads.
-     */
-    @TransactionAttribute(TransactionAttributeType.REQUIRED)
+    @Transactional
     public void transferir(Long origemId, Long destinoId, Double valor) {
-        
         if (valor == null || valor <= 0) {
             throw new IllegalArgumentException("O valor da transferência deve ser positivo.");
         }
 
-        // Busca as entidades - O JPA verificará a versão no commit
         Beneficio origem = em.find(Beneficio.class, origemId);
         Beneficio destino = em.find(Beneficio.class, destinoId);
 
@@ -35,14 +29,13 @@ public class BeneficioEjbService {
             throw new EntityNotFoundException("Uma ou ambas as contas não foram encontradas.");
         }
 
-        // Note: Se na sua classe Beneficio o campo for 'valor', altere para getValor()
         if (origem.getValor().doubleValue() < valor) {
             throw new IllegalStateException("Saldo insuficiente na conta origem.");
         }
 
-        // Atualização dos estados usando BigDecimal para precisão financeira
-        origem.setValor(origem.getValor().subtract(java.math.BigDecimal.valueOf(valor)));
-        destino.setValor(destino.getValor().add(java.math.BigDecimal.valueOf(valor)));
+        BigDecimal valorTransferencia = BigDecimal.valueOf(valor);
+        origem.setValor(origem.getValor().subtract(valorTransferencia));
+        destino.setValor(destino.getValor().add(valorTransferencia));
 
         try {
             em.merge(origem);
@@ -51,5 +44,10 @@ public class BeneficioEjbService {
         } catch (OptimisticLockException e) {
             throw new RuntimeException("Erro de concorrência: A conta foi alterada por outro processo.");
         }
+    }
+
+    // ESTE É O MÉTODO QUE ESTÁ FALTANDO NO SEU ERRO
+    public List<Beneficio> listarTodos() {
+        return em.createQuery("SELECT b FROM Beneficio b", Beneficio.class).getResultList();
     }
 }

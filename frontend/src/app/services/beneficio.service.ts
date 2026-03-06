@@ -1,21 +1,22 @@
 import { Injectable } from '@angular/core';
-import { Observable, of } from 'rxjs';
+import { HttpClient } from '@angular/common/http'; // Importação necessária
+import { Observable } from 'rxjs';
 import { Beneficio } from '../models/beneficio.model';
 
 @Injectable({ providedIn: 'root' })
 export class BeneficioService {
-  // Mock de dados para validação da Feature 06
-  private mockData: Beneficio[] = [
-    { id: 1, nome: 'Vale Refeição', saldo: 550.00, tipo: 'REFEICAO' },
-    { id: 2, nome: 'Vale Alimentação', saldo: 1200.00, tipo: 'ALIMENTACAO' }
-  ];
+  private apiUrl = 'http://localhost:8082/api/v1/beneficios';
+
+  constructor(private http: HttpClient) {}
 
   listar(): Observable<Beneficio[]> {
-    return of(this.mockData);
+    // Faz a chamada GET real para o backend
+    return this.http.get<Beneficio[]>(this.apiUrl);
   }
 
-  transferir(origemId: number, destinoId: number, valor: number): Observable<boolean> {
-    console.log(`Transferindo R$${valor} de ${origemId} para ${destinoId}`);
-    return of(true); // Simula sucesso
+  transferir(origemId: number, destinoId: number, valor: number): Observable<any> {
+    const payload = { origemId, destinoId, valor };
+    // Faz a chamada POST para o endpoint de transferência
+    return this.http.post(`${this.apiUrl}/transferir`, payload);
   }
 }
