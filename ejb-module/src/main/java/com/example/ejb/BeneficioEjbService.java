@@ -1,12 +1,14 @@
 package com.example.ejb;
 
-import javax.ejb.Stateless;
-import javax.ejb.TransactionAttribute;
-import javax.ejb.TransactionAttributeType;
-import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
-import javax.persistence.EntityNotFoundException;
-import javax.persistence.OptimisticLockException;
+import com.example.ejb.model.Beneficio;
+import jakarta.ejb.Stateless;
+import jakarta.ejb.TransactionAttribute;
+import jakarta.ejb.TransactionAttributeType;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
+import jakarta.persistence.EntityNotFoundException;
+import jakarta.persistence.OptimisticLockException;
+import java.util.List;
 
 @Stateless
 public class BeneficioEjbService {
@@ -16,8 +18,7 @@ public class BeneficioEjbService {
 
     /**
      * Regra de Negócio Avançada: Transferência com Optimistic Locking.
-     * O uso do campo 'version' no banco garante que se o saldo for alterado 
-     * entre a leitura e a gravação, uma OptimisticLockException será lançada.
+     * O uso do campo 'version' garante proteção contra Dirty Reads.
      */
     @TransactionAttribute(TransactionAttributeType.REQUIRED)
     public void transferir(Long origemId, Long destinoId, Double valor) {
@@ -26,7 +27,7 @@ public class BeneficioEjbService {
             throw new IllegalArgumentException("O valor da transferência deve ser positivo.");
         }
 
-        // Busca as entidades - O JPA automaticamente verificará a versão no commit
+        // Busca as entidades - O JPA verificará a versão no commit
         Beneficio origem = em.find(Beneficio.class, origemId);
         Beneficio destino = em.find(Beneficio.class, destinoId);
 
@@ -34,22 +35,21 @@ public class BeneficioEjbService {
             throw new EntityNotFoundException("Uma ou ambas as contas não foram encontradas.");
         }
 
-        if (origem.getSaldo() < valor) {
-            // Lançar RuntimeException força o Rollback no EJB
+        // Note: Se na sua classe Beneficio o campo for 'valor', altere para getValor()
+        if (origem.getValor().doubleValue() < valor) {
             throw new IllegalStateException("Saldo insuficiente na conta origem.");
         }
 
-        // Atualização dos estados
-        origem.setSaldo(origem.getSaldo() - valor);
-        destino.setSaldo(destino.getSaldo() + valor);
+        // Atualização dos estados usando BigDecimal para precisão financeira
+        origem.setValor(origem.getValor().subtract(java.math.BigDecimal.valueOf(valor)));
+        destino.setValor(destino.getValor().add(java.math.BigDecimal.valueOf(valor)));
 
-        // O merge processa as alterações e incrementa o campo 'version'
         try {
             em.merge(origem);
             em.merge(destino);
-            em.flush(); // Força a verificação do lock antes do fim do método
+            em.flush(); 
         } catch (OptimisticLockException e) {
-            throw new RuntimeException("Erro de concorrência: A conta foi alterada por outro processo. Tente novamente.");
+            throw new RuntimeException("Erro de concorrência: A conta foi alterada por outro processo.");
         }
     }
 }

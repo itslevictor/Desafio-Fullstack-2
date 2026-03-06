@@ -1,21 +1,25 @@
 package com.example.backend;
 
 import com.example.ejb.BeneficioEjbService;
+import com.example.ejb.model.Beneficio; 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
+import jakarta.persistence.EntityNotFoundException;
 import java.util.List;
-
-import javax.persistence.EntityNotFoundException;
 
 @RestController
 @RequestMapping("/api/v1/beneficios")
 public class BeneficioController {
 
-    // Em um ambiente real JEE, usaríamos @EJB ou Injeção via JNDI
     @Autowired
     private BeneficioEjbService beneficioService;
+
+    @PersistenceContext
+    private EntityManager em;
 
     @PostMapping("/transferir")
     public ResponseEntity<String> transferir(@RequestBody TransferenciaDTO dto) {
@@ -30,11 +34,12 @@ public class BeneficioController {
             return ResponseEntity.status(500).body("Erro interno: " + e.getMessage());
         }
     }
+
     @GetMapping
     public ResponseEntity<List<Beneficio>> listarTodos() {
-        // Busca real do banco através do contexto de persistência
+        // Busca real do banco através do contexto de persistência injetado
         List<Beneficio> lista = em.createQuery("SELECT b FROM Beneficio b", Beneficio.class).getResultList();
-    return ResponseEntity.ok(lista);
+        return ResponseEntity.ok(lista);
     }
 }
 
@@ -43,9 +48,11 @@ class TransferenciaDTO {
     private Long origemId;
     private Long destinoId;
     private Double valor;
-    // Getters e Setters necessários
-    public Long getOrigemId() { return origemId; }
-    public Long getDestinoId() { return destinoId; }
-    public Double getValor() { return valor; }
-}
 
+    public Long getOrigemId() { return origemId; }
+    public void setOrigemId(Long origemId) { this.origemId = origemId; }
+    public Long getDestinoId() { return destinoId; }
+    public void setDestinoId(Long destinoId) { this.destinoId = destinoId; }
+    public Double getValor() { return valor; }
+    public void setValor(Double valor) { this.valor = valor; }
+}
