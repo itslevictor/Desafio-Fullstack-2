@@ -7,7 +7,7 @@
     <artifactId>backend-module</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <packaging>jar</packaging>
-
+    
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
@@ -26,6 +26,12 @@
             <artifactId>spring-boot-starter-web</artifactId>
         </dependency>
 
+        <dependency>
+            <groupId>com.example</groupId>
+            <artifactId>ejb-module</artifactId>
+            <version>0.0.1-SNAPSHOT</version>
+        </dependency>
+        
         <!-- JPA + H2 (exemplo banco em memória para rodar os testes) -->
         <dependency>
             <groupId>org.springframework.boot</groupId>

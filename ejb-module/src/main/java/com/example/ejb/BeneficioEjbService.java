@@ -1,11 +1,14 @@
 package com.example.ejb;
 
-import javax.ejb.Stateless;
-import javax.ejb.TransactionAttribute;
-import javax.ejb.TransactionAttributeType;
-import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
-import javax.persistence.EntityNotFoundException;
+import com.example.ejb.model.Beneficio;
+import jakarta.ejb.Stateless;
+import jakarta.ejb.TransactionAttribute;
+import jakarta.ejb.TransactionAttributeType;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
+import jakarta.persistence.EntityNotFoundException;
+import jakarta.persistence.OptimisticLockException;
+import java.util.List;
 
 @Stateless
 public class BeneficioEjbService {
@@ -14,42 +17,39 @@ public class BeneficioEjbService {
     private EntityManager em;
 
     /**
-     * Regra de Negocio: Transferência entre contas de benefícios.
-     * Correcao do Bug: Adicao de validacoes de saldo e garantia de integridade nas transacoes.
+     * Regra de Negócio Avançada: Transferência com Optimistic Locking.
+     * O uso do campo 'version' garante proteção contra Dirty Reads.
      */
     @TransactionAttribute(TransactionAttributeType.REQUIRED)
     public void transferir(Long origemId, Long destinoId, Double valor) {
         
-        // 1. Validação de parâmetros de entrada
         if (valor == null || valor <= 0) {
             throw new IllegalArgumentException("O valor da transferência deve ser positivo.");
         }
 
-        // 2. Localização das entidades no banco de dados
+        // Busca as entidades - O JPA verificará a versão no commit
         Beneficio origem = em.find(Beneficio.class, origemId);
         Beneficio destino = em.find(Beneficio.class, destinoId);
 
-        // 3. Validação de existência (Prevenção de NullPointerException)
-        if (origem == null) {
-            throw new EntityNotFoundException("Conta de origem nao encontrada ID: " + origemId);
-        }
-        if (destino == null) {
-            throw new EntityNotFoundException("Conta de destino nao encontrada ID: " + destinoId);
+        if (origem == null || destino == null) {
+            throw new EntityNotFoundException("Uma ou ambas as contas não foram encontradas.");
         }
 
-        // 4. Validação de Saldo (Requisito Principal do Bug)
-        if (origem.getSaldo() < valor) {
-            // Lançar RuntimeException dentro de um EJB com transação "REQUIRED
-            // força o Rollback automático de qualquer alteração pendente.
-            throw new RuntimeException("Saldo insuficiente. Operação cancelada.");
+        // Note: Se na sua classe Beneficio o campo for 'valor', altere para getValor()
+        if (origem.getValor().doubleValue() < valor) {
+            throw new IllegalStateException("Saldo insuficiente na conta origem.");
         }
 
-        // 5. Execução da transferência
-        origem.setSaldo(origem.getSaldo() - valor);
-        destino.setSaldo(destino.getSaldo() + valor);
+        // Atualização dos estados usando BigDecimal para precisão financeira
+        origem.setValor(origem.getValor().subtract(java.math.BigDecimal.valueOf(valor)));
+        destino.setValor(destino.getValor().add(java.math.BigDecimal.valueOf(valor)));
 
-        // Sincronização com o contexto de persistencia
-        em.merge(origem);
-        em.merge(destino);
+        try {
+            em.merge(origem);
+            em.merge(destino);
+            em.flush(); 
+        } catch (OptimisticLockException e) {
+            throw new RuntimeException("Erro de concorrência: A conta foi alterada por outro processo.");
+        }
     }
 }
