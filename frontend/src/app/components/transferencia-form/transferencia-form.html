@@ -1,1 +1,22 @@
-<p>transferencia-form works!</p>
+<div class="transfer-box">
+  <h3>Nova Transferência</h3>
+  <form (ngSubmit)="onSubmit()">
+    <div class="input-group">
+      <label>Nome da Conta de Destino:</label>
+      <select [(ngModel)]="transferencia.destinoId" name="destino" required>
+        <option [ngValue]="0">Selecione o destino...</option>
+        <option *ngFor="let b of beneficios" [ngValue]="b.id">{{ b.nome }}</option>
+      </select>
+    </div>
+
+    <div class="input-group">
+      <label>Valor a Transferir:</label>
+      <input type="number" [(ngModel)]="transferencia.valor" name="valor" placeholder="R$ 0,00" required>
+    </div>
+
+    <div class="button-row">
+      <button type="submit" class="btn-confirm">Transferir Agora</button>
+      <button type="button" class="btn-cancel" routerLink="/beneficios">Voltar</button>
+    </div>
+  </form>
+</div>

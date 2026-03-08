@@ -1,103 +1,67 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { RouterOutlet, RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
-import { RouterOutlet } from '@angular/router';
+import { BeneficioService } from './services/beneficio.service';
+import { Beneficio } from './models/beneficio.model';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterOutlet],
+  imports: [CommonModule, RouterOutlet, RouterModule, FormsModule],
   templateUrl: './app.component.html',
   styleUrl: './app.scss'
 })
-export class AppComponent {
-  logado = false;
-  showModal = false;
-  feedbackMsg = '';
-  feedbackStatus: 'success' | 'error' | null = null;
+export class AppComponent implements OnInit {
+  logado: boolean = false;
+  showModal: boolean = false;
   
-  loginInput = '';
-  senhaInput = '';
-  destinatario = '';
-  valorTransferir: number | null = null;
+  loginInput: string = '';
+  senhaInput: string = '';
+  feedbackMsg: string = '';
+  feedbackStatus: string | null = null;
+  
+  contaAtiva: any = { nome: 'Administrador BIP' };
+  beneficios: Beneficio[] = [];
 
-  // Base de dados local para a Feature 06
-  contas: any = {
-    'conta1': { nome: 'Usuário Alfa', saldo: 5000.00, historico: [] },
-    'conta2': { nome: 'Usuário Beta', saldo: 2500.00, historico: [] }
-  };
+  constructor(private beneficioService: BeneficioService) {}
 
-  contaAtiva: any = null;
+  ngOnInit(): void {
+    // Carregamento inicial pode ser feito aqui se necessário
+  }
 
   login() {
-    const chave = this.loginInput.toLowerCase().trim();
-    // Validação: chave existe e senha é igual ao input do usuário
-    if (this.contas[chave] && this.senhaInput === this.loginInput) {
-      this.contaAtiva = this.contas[chave];
+    if (this.loginInput === 'admin' && this.senhaInput === 'admin') {
       this.logado = true;
-      this.feedbackStatus = null;
+      this.carregarDados();
+      this.setFeedback('Bem-vindo ao BIP Digital!', 'success');
     } else {
-      this.setFeedback('Usuário ou senha inválidos. Use conta1 ou conta2.', 'error');
+      this.setFeedback('Credenciais inválidas. Use admin/admin.', 'error');
     }
-  }
-
-  simularTransferencia() {
-    const valor = this.valorTransferir || 0;
-    const destinoChave = this.destinatario.toLowerCase().trim();
-    const contaDestino = this.contas[destinoChave];
-
-    if (valor > 0 && valor <= this.contaAtiva.saldo) {
-      const timestamp = new Date().toLocaleString('pt-BR');
-      
-      const idDestino = contaDestino ? `${contaDestino.nome} (${destinoChave})` : this.destinatario;
-      const idOrigem = `${this.contaAtiva.nome} (${this.loginInput.toLowerCase()})`;
-
-      // Lógica de atualização dupla (Reatividade local)
-      this.contaAtiva.saldo -= valor;
-      this.contaAtiva.historico.unshift({
-        data: timestamp,
-        desc: `Enviado para: ${idDestino}`,
-        valor: valor,
-        tipo: 'SAIDA'
-      });
-
-      if (contaDestino && destinoChave !== this.loginInput.toLowerCase()) {
-        contaDestino.saldo += valor;
-        contaDestino.historico.unshift({
-          data: timestamp,
-          desc: `Recebido de: ${idOrigem}`,
-          valor: valor,
-          tipo: 'ENTRADA'
-        });
-      }
-
-      this.setFeedback('Transferência realizada!', 'success');
-      this.destinatario = '';
-      this.valorTransferir = null;
-    } else {
-      this.setFeedback('Saldo insuficiente ou destinatário inválido.', 'error');
-    }
-  }
-  setFeedback(msg: string, status: 'success' | 'error') {
-    this.feedbackMsg = msg;
-    this.feedbackStatus = status;
-    
-    // O uso de timeout já ajuda a evitar bloqueios na thread principal
-    setTimeout(() => { 
-      this.feedbackStatus = null; 
-    }, 4000);
-  }
-
-  exportarPDF() {
-    window.print();
   }
 
   logout() {
     this.logado = false;
     this.loginInput = '';
     this.senhaInput = '';
-    this.contaAtiva = null;
+    this.beneficios = [];
     this.showModal = false;
   }
-}
 
+  carregarDados() {
+    this.beneficioService.listar().subscribe({
+      next: (dados) => { this.beneficios = dados; },
+      error: () => { this.setFeedback('Erro ao conectar com o servidor.', 'error'); }
+    });
+  }
+
+  setFeedback(msg: string, status: 'success' | 'error') {
+    this.feedbackMsg = msg;
+    this.feedbackStatus = status;
+    setTimeout(() => { this.feedbackStatus = null; }, 4000);
+  }
+
+  exportarPDF() {
+    window.print();
+  }
+}

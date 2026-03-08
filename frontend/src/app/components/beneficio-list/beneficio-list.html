@@ -1,28 +1,27 @@
-<div class="list-container">
-    <h2>Seus Benefícios</h2>
-    
-    <table border="1" style="width: 100%; border-collapse: collapse; margin-top: 1rem;">
-      <thead>
-        <tr style="background-color: #eee;">
-          <th>ID</th>
-          <th>Nome do Benefício</th>
-          <th>Tipo</th>
-          <th>Saldo</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr *ngFor="let b of beneficios">
-          <td>{{ b.id }}</td>
-          <td>{{ b.nome }}</td>
-          <td>{{ b.tipo }}</td>
-          <td>{{ b.saldo | currency:'BRL' }}</td>
-        </tr>
-      </tbody>
-    </table>
+<div class="dashboard-container">
+  <h2>Seu Histórico de Transações</h2>
   
-    <div style="margin-top: 2rem;">
-      <button routerLink="/transferir" style="padding: 10px 20px; cursor: pointer;">
-        Efetuar Nova Transferência
-      </button>
-    </div>
+  <table class="transaction-table">
+    <thead>
+      <tr>
+        <th>Data</th>
+        <th>Tipo</th>
+        <th>Descrição</th>
+        <th>Valor</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let t of transacoes">
+        <td>{{ t.data | date:'dd/MM/yyyy' }}</td>
+        <td>{{ t.tipo }}</td>
+        <td>{{ t.descricao }}</td>
+        <td [ngClass]="{'valor-negativo': t.valor < 0}">{{ t.valor | currency:'BRL' }}</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="dashboard-actions">
+    <button class="btn-main" routerLink="/transferencia">Efetuar Nova Transferência</button>
+    <a routerLink="/extrato-completo" class="link-extrato">Ver Extrato Completo</a>
   </div>
+</div>

@@ -1,4 +1,5 @@
 package com.example.ejb.model;
+
 import jakarta.persistence.*;
 import java.math.BigDecimal;
 
@@ -20,13 +21,11 @@ public class Beneficio {
 
     private Boolean ativo = true;
 
-    @Version // Requisito para Bug EJB Part 2: Optimistic Locking
+    @Version
     private Long version;
 
-    // Construtores
     public Beneficio() {}
 
-    // Getters e Setters
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
     public String getNome() { return nome; }

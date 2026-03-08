@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http'; // Importação necessária
+import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { Beneficio } from '../models/beneficio.model';
+import { Beneficio, Transacao, TransferenciaDTO } from '../models/beneficio.model';
 
 @Injectable({ providedIn: 'root' })
 export class BeneficioService {
@@ -9,14 +9,18 @@ export class BeneficioService {
 
   constructor(private http: HttpClient) {}
 
+  // Retorna a lista de contas/benefícios para o select do formulário
   listar(): Observable<Beneficio[]> {
-    // Faz a chamada GET real para o backend
     return this.http.get<Beneficio[]>(this.apiUrl);
   }
 
+  // Retorna o histórico de transações para a página inicial
+  getHistorico(): Observable<Transacao[]> {
+    return this.http.get<Transacao[]>(`${this.apiUrl}/historico`);
+  }
+
   transferir(origemId: number, destinoId: number, valor: number): Observable<any> {
-    const payload = { origemId, destinoId, valor };
-    // Faz a chamada POST para o endpoint de transferência
+    const payload: TransferenciaDTO = { origemId, destinoId, valor };
     return this.http.post(`${this.apiUrl}/transferir`, payload);
   }
 }

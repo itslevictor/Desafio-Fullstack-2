@@ -36,7 +36,7 @@ public class BeneficioEjbService {
         BigDecimal valorTransferencia = BigDecimal.valueOf(valor);
         origem.setValor(origem.getValor().subtract(valorTransferencia));
         destino.setValor(destino.getValor().add(valorTransferencia));
-
+        
         try {
             em.merge(origem);
             em.merge(destino);
@@ -46,7 +46,17 @@ public class BeneficioEjbService {
         }
     }
 
-    // ESTE É O MÉTODO QUE ESTÁ FALTANDO NO SEU ERRO
+    // MÉTODO QUE O CONTROLLER ESTÁ BUSCANDO
+    @Transactional
+    public Beneficio salvar(Beneficio beneficio) {
+        if (beneficio.getId() == null) {
+            em.persist(beneficio);
+            return beneficio;
+        } else {
+            return em.merge(beneficio);
+        }
+    }
+
     public List<Beneficio> listarTodos() {
         return em.createQuery("SELECT b FROM Beneficio b", Beneficio.class).getResultList();
     }

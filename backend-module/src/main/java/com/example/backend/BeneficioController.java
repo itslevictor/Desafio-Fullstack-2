@@ -30,15 +30,23 @@ public class BeneficioController {
         }
     }
 
+    @PostMapping
+    public ResponseEntity<Beneficio> criar(@RequestBody Beneficio beneficio) {
+        try {
+            Beneficio novo = beneficioService.salvar(beneficio);
+            return ResponseEntity.status(201).body(novo);
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().build();
+        }
+    }
+    
     @GetMapping
     public ResponseEntity<List<Beneficio>> listarTodos() {
-        // Delegando para o Service
         List<Beneficio> lista = beneficioService.listarTodos();
         return ResponseEntity.ok(lista);
     }
 }
 
-// DTO mantido (pode ficar no final do arquivo ou em arquivo próprio)
 class TransferenciaDTO {
     private Long origemId;
     private Long destinoId;

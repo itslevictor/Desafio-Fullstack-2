@@ -16,58 +16,33 @@
       <div class="login-card">
         <h2>Acessar BIP</h2>
         <div class="form-group">
-          <input type="text" [(ngModel)]="loginInput" placeholder="Usuário">
-          
-          <div class="password-field-container">
-            <input type="password" 
-                   [(ngModel)]="senhaInput" 
-                   name="senha"
-                   id="senha-login"
-                   placeholder="Senha">
-          </div>
-          
+          <input type="text" [(ngModel)]="loginInput" placeholder="Usuário (admin)">
+          <input type="password" [(ngModel)]="senhaInput" placeholder="Senha (admin)">
           <button (click)="login()" class="btn-primary">Entrar</button>
         </div>
       </div>
     </section>
 
     <section class="dashboard" *ngIf="logado">
-      <div class="summary-grid">
-        <div class="card balance-card">
-          <label>Saldo disponível</label>
-          <h3>{{ contaAtiva?.saldo | currency:'BRL' }}</h3>
-        </div>
+      <nav class="bank-nav" style="margin-bottom: 2rem; display: flex; gap: 15px;">
+        <button routerLink="/beneficios" class="btn-link">Resumo de Benefícios</button>
+        <button routerLink="/transferir" class="btn-link">Nova Transferência</button>
+      </nav>
 
-        <div class="card transfer-card">
-          <h4>Nova Transferência</h4>
-          <div class="inline-form">
-            <input type="text" [(ngModel)]="destinatario" placeholder="Para quem?">
-            <input type="number" [(ngModel)]="valorTransferir" placeholder="Valor">
-            <button (click)="simularTransferencia()" class="btn-send">Enviar</button>
-          </div>
-        </div>
-      </div>
-
-      <div class="card recent-history">
-        <div class="header-row">
-          <h4>Últimas Transações</h4>
-          <button (click)="showModal = true" class="btn-link">Histórico Completo</button>
-        </div>
-        <div class="transaction-item" *ngFor="let item of contaAtiva.historico.slice(0, 5)">
-          <span>{{ item.data }} - {{ item.desc }}</span>
-          <b [style.color]="item.tipo === 'SAIDA' ? '#e74c3c' : '#2ecc71'">
-            {{ item.tipo === 'SAIDA' ? '-' : '+' }} {{ item.valor | currency:'BRL' }}
-          </b>
-        </div>
+      <router-outlet></router-outlet>
+      
+      <div style="margin-top: 1rem;">
+        <button (click)="showModal = true" class="btn-link">Ver Extrato Completo</button>
       </div>
     </section>
   </main>
 
   <div class="full-modal" *ngIf="showModal">
-    <div class="modal-content"> <div class="modal-header">
-        <h2>Extrato Completo</h2>
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>Extrato Consolidado</h2>
         <div class="actions">
-          <button (click)="exportarPDF()" class="btn-export">Exportar PDF</button>
+          <button (click)="exportarPDF()" class="btn-export">Imprimir PDF</button>
           <button (click)="showModal = false" class="btn-close">✕</button>
         </div>
       </div>
@@ -75,20 +50,18 @@
         <table class="full-table">
           <thead>
             <tr>
-              <th>Data/Hora</th>
+              <th>ID</th>
+              <th>Nome</th>
               <th>Descrição</th>
-              <th>Tipo</th>
               <th>Valor</th>
             </tr>
           </thead>
           <tbody>
-            <tr *ngFor="let item of contaAtiva?.historico">
-              <td>{{ item.data }}</td>
-              <td>{{ item.desc }}</td>
-              <td><span class="badge" [class]="item.tipo">{{ item.tipo }}</span></td>
-              <td [style.color]="item.tipo === 'SAIDA' ? '#e74c3c' : '#2ecc71'">
-                <strong>{{ item.valor | currency:'BRL' }}</strong>
-              </td>
+            <tr *ngFor="let b of beneficios">
+              <td>{{ b.id }}</td>
+              <td>{{ b.nome }}</td>
+              <td>{{ b.descricao }}</td>
+              <td>{{ b.valor | currency:'BRL' }}</td>
             </tr>
           </tbody>
         </table>

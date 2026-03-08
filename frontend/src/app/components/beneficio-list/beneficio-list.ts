@@ -1,14 +1,8 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
-
-// Interface temporária para tipagem (Essência do modelo)
-interface Beneficio {
-  id: number;
-  nome: string;
-  tipo: string;
-  saldo: number;
-}
+import { BeneficioService } from '../../services/beneficio.service';
+import { Transacao } from '../../models/beneficio.model';
 
 @Component({
   selector: 'app-beneficio-list',
@@ -17,13 +11,24 @@ interface Beneficio {
   templateUrl: './beneficio-list.html',
   styleUrl: './beneficio-list.scss'
 })
-export class BeneficioListComponent {
-  // Dados simulados para validar a Feature 06
-  beneficios: Beneficio[] = [
-    { id: 1, nome: 'Vale Refeição', tipo: 'ALIMENTACAO', saldo: 550.00 },
-    { id: 2, nome: 'Vale Transporte', tipo: 'TRANSPORTE', saldo: 200.00 },
-    { id: 3, nome: 'Bônus Anual', tipo: 'OUTROS', saldo: 1200.50 }
-  ];
+export class BeneficioListComponent implements OnInit {
+  // Alterado de 'beneficios' para 'transacoes' para bater com o HTML
+  transacoes: Transacao[] = [];
 
-  constructor() {}
+  constructor(private service: BeneficioService) {}
+
+  ngOnInit(): void {
+    this.carregarHistorico();
+  }
+
+  carregarHistorico() {
+    this.service.getHistorico().subscribe({
+      next: (dados) => {
+        this.transacoes = dados;
+      },
+      error: (err) => {
+        console.error('Erro ao buscar histórico de transações', err);
+      }
+    });
+  }
 }
